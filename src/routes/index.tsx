@@ -10,13 +10,13 @@ import { useState } from "react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Miradex — Swap Onchain without WalletConnect" },
+      { title: "Swaplix — Swap Onchain without WalletConnect" },
       {
         name: "description",
         content:
           "Access 50+ blockchains via THORChain, Chainflip, and Atomic Swaps. No custody, no KYC, no Wallet Connect.",
       },
-      { property: "og:title", content: "Miradex — Swap Onchain without WalletConnect" },
+      { property: "og:title", content: "Swaplix — Swap Onchain without WalletConnect" },
       {
         property: "og:description",
         content: "Non-custodial, verifiable swaps across 50+ chains.",
@@ -43,7 +43,7 @@ const protocols = [
 ];
 
 const competitors = [
-  { rank: "01", name: "Miradex", amount: "4.2310", diff: "best", pct: 100, highlight: true },
+  { rank: "01", name: "Swaplix", amount: "4.2310", diff: "best", pct: 100, highlight: true },
   { rank: "02", name: "StealthEX", amount: "4.2056", diff: "-0.6%", pct: 78 },
   { rank: "03", name: "Instant Swaps", amount: "4.1802", diff: "-1.2%", pct: 62 },
   { rank: "04", name: "MetaMask Swaps", amount: "4.1675", diff: "-1.5%", pct: 56 },
@@ -75,7 +75,7 @@ const trustRows = [
   },
   {
     n: "04",
-    cat: "MIRADEX",
+    cat: "SWAPLIX",
     claim: "“Don't trust us — verify the swap yourself.”",
     risk: "The swap fails to settle and",
     highlight: "the protocol refunds you automatically.",
@@ -123,7 +123,7 @@ const principles = [
     n: "01",
     title: ["Zero custody. ", "Not even", " for a second."],
     body: "Coins route directly from your wallet to the protocol's onchain vault. We never receive, hold, or touch them. Nothing to freeze. Nothing to seize.",
-    tag: "There's no Miradex wallet. Check the chain.",
+    tag: "There's no Swaplix wallet. Check the chain.",
   },
   {
     n: "02",
@@ -294,7 +294,7 @@ function Comparison() {
           <h2 className="mt-6 text-4xl md:text-5xl">Better rates.</h2>
           <h3 className="text-3xl text-primary italic md:text-4xl">Without giving up custody.</h3>
           <p className="mt-6 max-w-md text-foreground/75">
-            Miradex routes you through all the best providers and gives you rates as good as a CEX for most pairs.
+            Swaplix routes you through all the best providers and gives you rates as good as a CEX for most pairs.
           </p>
           <p className="mt-12 text-2xl">
             You save <span className="font-serif italic text-primary text-3xl">$62</span>
@@ -373,7 +373,7 @@ function TrustSection() {
           Every swap interface today asks you to <em>trust</em> something.
         </h2>
         <p className="mt-5 max-w-2xl text-foreground/75">
-          A frontend. A custodian. A promise. Miradex is the swap that asks you to trust nothing but the chain itself.
+          A frontend. A custodian. A promise. Swaplix is the swap that asks you to trust nothing but the chain itself.
         </p>
         <div className="mt-14 space-y-2">
           {trustRows.map((r) => (
@@ -440,7 +440,7 @@ function MatrixSection() {
             <thead>
               <tr className="text-eyebrow border-b border-border/40">
                 <th className="py-4 pr-4 font-normal">Question</th>
-                <th className="py-4 px-4 font-normal text-primary">Miradex</th>
+                <th className="py-4 px-4 font-normal text-primary">Swaplix</th>
                 <th className="py-4 px-4 font-normal">DEX</th>
                 <th className="py-4 px-4 font-normal">Instant</th>
                 <th className="py-4 px-4 font-normal">CEX</th>
@@ -516,7 +516,7 @@ function CTASection() {
             href="#"
             className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:scale-[1.02] transition-transform"
           >
-            Open Miradex <ArrowRight className="h-4 w-4" />
+            Open Swaplix <ArrowRight className="h-4 w-4" />
           </a>
           <a
             href="#"
