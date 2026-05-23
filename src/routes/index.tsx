@@ -557,9 +557,9 @@ function CoinMarquee() {
           {all.map((c, i) => (
             <div
               key={i}
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-card text-lg font-bold ring-1 ring-border"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-card ring-1 ring-border"
             >
-              {c}
+              <img src={c.url} alt={c.sym} width={32} height={32} loading="lazy" className="h-8 w-8" />
             </div>
           ))}
         </div>
