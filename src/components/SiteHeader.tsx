@@ -8,7 +8,7 @@ export function SiteHeader() {
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-serif italic text-lg">
             M
           </div>
-          <span className="font-serif text-xl tracking-wide">MIRADEX</span>
+          <span className="font-serif text-xl tracking-wide">SWAPLIX</span>
         </Link>
         <nav className="hidden items-center gap-10 text-sm text-foreground/80 md:flex">
           <a href="#how" className="hover:text-foreground transition-colors">How it works</a>

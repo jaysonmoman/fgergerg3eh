@@ -18,7 +18,7 @@ export function SiteFooter() {
     <footer className="border-t border-border/60 px-6 py-16 md:px-10">
       <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-4">
         <div>
-          <p className="font-serif italic text-2xl">Miradex</p>
+          <p className="font-serif italic text-2xl">Swaplix</p>
           <p className="mt-4 max-w-xs text-sm text-muted-foreground">
             A decentralized exchange protocol for native, atomic, verifiable swaps across chains.
           </p>
@@ -39,7 +39,7 @@ export function SiteFooter() {
         ))}
       </div>
       <div className="mx-auto mt-16 flex max-w-7xl items-center justify-between text-eyebrow">
-        <span>© Miradex 2026</span>
+        <span>© Swaplix 2026</span>
         <div className="flex gap-6">
           <a href="#">Privacy</a>
           <a href="#">Terms</a>
