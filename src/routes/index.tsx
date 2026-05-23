@@ -159,7 +159,24 @@ const principles = [
 ];
 
 const coins = [
-  "₿", "Ξ", "M", "S", "A", "Ł", "N", "•", "▲", "◆", "₳", "⬡", "Ð", "B", "T",
+  { sym: "BTC", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/btc.png" },
+  { sym: "ETH", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/eth.png" },
+  { sym: "XMR", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/xmr.png" },
+  { sym: "SOL", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/sol.png" },
+  { sym: "ATOM", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/atom.png" },
+  { sym: "LTC", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/ltc.png" },
+  { sym: "NEAR", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/near.png" },
+  { sym: "DOT", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/dot.png" },
+  { sym: "AVAX", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/avax.png" },
+  { sym: "MATIC", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/matic.png" },
+  { sym: "ADA", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/ada.png" },
+  { sym: "LINK", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/link.png" },
+  { sym: "DOGE", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/doge.png" },
+  { sym: "BNB", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/bnb.png" },
+  { sym: "USDT", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/usdt.png" },
+  { sym: "BCH", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/bch.png" },
+  { sym: "XLM", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/xlm.png" },
+  { sym: "TRX", url: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/trx.png" },
 ];
 
 function IndexPage() {
