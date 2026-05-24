@@ -33,7 +33,7 @@ export function SiteHeader() {
               </button>
             </>
           ) : (
-            <Link to="/login" className="rounded-full bg-primary px-4 py-1.5 text-primary-foreground hover:scale-[1.02] transition-transform">
+            <Link to="/login" search={{ redirect: "/swaps" }} className="rounded-full bg-primary px-4 py-1.5 text-primary-foreground hover:scale-[1.02] transition-transform">
               Sign in
             </Link>
           )}
