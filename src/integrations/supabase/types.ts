@@ -14,16 +14,142 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      swap_requests: {
+        Row: {
+          created_at: string
+          deposit_address: string | null
+          deposit_txid: string | null
+          destination_address: string
+          exchanger_id: string | null
+          exchanger_payout_address: string | null
+          expires_at: string
+          from_amount: number
+          from_currency: string
+          id: string
+          notes: string | null
+          payout_txid: string | null
+          rate: number | null
+          short_id: string
+          status: Database["public"]["Enums"]["swap_status"]
+          swap_type: Database["public"]["Enums"]["swap_type"]
+          to_amount: number | null
+          to_currency: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          deposit_address?: string | null
+          deposit_txid?: string | null
+          destination_address: string
+          exchanger_id?: string | null
+          exchanger_payout_address?: string | null
+          expires_at?: string
+          from_amount: number
+          from_currency: string
+          id?: string
+          notes?: string | null
+          payout_txid?: string | null
+          rate?: number | null
+          short_id?: string
+          status?: Database["public"]["Enums"]["swap_status"]
+          swap_type?: Database["public"]["Enums"]["swap_type"]
+          to_amount?: number | null
+          to_currency: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          deposit_address?: string | null
+          deposit_txid?: string | null
+          destination_address?: string
+          exchanger_id?: string | null
+          exchanger_payout_address?: string | null
+          expires_at?: string
+          from_amount?: number
+          from_currency?: string
+          id?: string
+          notes?: string | null
+          payout_txid?: string | null
+          rate?: number | null
+          short_id?: string
+          status?: Database["public"]["Enums"]["swap_status"]
+          swap_type?: Database["public"]["Enums"]["swap_type"]
+          to_amount?: number | null
+          to_currency?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "exchanger" | "user"
+      swap_status:
+        | "pending_deposit"
+        | "escrowed"
+        | "claimed"
+        | "fulfilled"
+        | "completed"
+        | "expired"
+        | "refunded"
+        | "admin_pending"
+      swap_type: "user" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +276,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "exchanger", "user"],
+      swap_status: [
+        "pending_deposit",
+        "escrowed",
+        "claimed",
+        "fulfilled",
+        "completed",
+        "expired",
+        "refunded",
+        "admin_pending",
+      ],
+      swap_type: ["user", "admin"],
+    },
   },
 } as const
