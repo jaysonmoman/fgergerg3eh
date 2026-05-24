@@ -53,7 +53,7 @@ function SignupPage() {
         </div>
         <button onClick={google} className="mt-4 w-full rounded-xl border border-border bg-card py-3 text-sm hover:bg-foreground/5">Continue with Google</button>
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          Have an account? <Link to="/login" className="text-primary hover:underline">Sign in</Link>
+          Have an account? <Link to="/login" search={{ redirect: "/swaps" }} className="text-primary hover:underline">Sign in</Link>
         </p>
       </div>
     </div>
