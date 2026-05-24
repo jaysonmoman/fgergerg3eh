@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Starfield } from "@/components/Starfield";
 import { SwapCard } from "@/components/SwapCard";
+import { LivePriceComparison } from "@/components/LivePriceComparison";
 import { useState } from "react";
 
 export const Route = createFileRoute("/")({
@@ -198,6 +199,10 @@ function IndexPage() {
 }
 
 function Hero() {
+  const [fromCurrency, setFromCurrency] = useState("LTC");
+  const [toCurrency, setToCurrency] = useState("ETH");
+  const [swapAmount, setSwapAmount] = useState("0.1");
+
   return (
     <section className="relative min-h-screen overflow-hidden pb-24">
       <img
@@ -211,7 +216,7 @@ function Hero() {
       <Starfield />
       <SiteHeader />
 
-      <div className="relative z-10 mx-auto grid max-w-7xl gap-16 px-6 pt-40 md:grid-cols-2 md:items-center md:px-10 md:pt-48">
+      <div className="relative z-10 mx-auto grid max-w-7xl gap-16 px-6 pt-40 md:grid-cols-2 md:items-start md:px-10 md:pt-48">
         <div>
           <h1 className="text-5xl leading-[1.05] md:text-6xl lg:text-7xl">
             Swap{" "}
@@ -244,8 +249,21 @@ function Hero() {
           </div>
         </div>
 
-        <div className="flex justify-center md:justify-end">
-          <SwapCard />
+        <div className="flex flex-col items-center gap-6 md:items-end">
+          <SwapCard 
+            onCurrencyChange={(from, to) => {
+              setFromCurrency(from);
+              setToCurrency(to);
+            }}
+            onAmountChange={setSwapAmount}
+          />
+          <div className="w-full max-w-md">
+            <LivePriceComparison
+              fromCurrency={fromCurrency}
+              toCurrency={toCurrency}
+              fromAmount={swapAmount}
+            />
+          </div>
         </div>
       </div>
     </section>
