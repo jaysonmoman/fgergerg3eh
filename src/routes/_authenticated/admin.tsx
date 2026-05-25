@@ -150,7 +150,7 @@ function AdminPage() {
         <div className="mt-4 overflow-hidden rounded-2xl border border-border/60">
           <table className="w-full text-sm">
             <thead className="bg-foreground/5 text-left text-xs uppercase tracking-wider text-muted-foreground">
-              <tr><th className="px-4 py-3">ID</th><th className="px-4 py-3">Type</th><th className="px-4 py-3">Pair</th><th className="px-4 py-3">Amount</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Created</th></tr>
+              <tr><th className="px-4 py-3">ID</th><th className="px-4 py-3">Type</th><th className="px-4 py-3">Pair</th><th className="px-4 py-3">Amount</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Created</th><th className="px-4 py-3">Action</th></tr>
             </thead>
             <tbody className="divide-y divide-border/40">
               {allQ.data?.swaps.map((s) => (
@@ -161,9 +161,23 @@ function AdminPage() {
                   <td className="px-4 py-2 text-num">{s.from_amount}</td>
                   <td className="px-4 py-2"><StatusPill status={s.status} /></td>
                   <td className="px-4 py-2 text-xs text-muted-foreground">{new Date(s.created_at).toLocaleString()}</td>
+                  <td className="px-4 py-2">
+                    {s.status === "fulfilled" ? (
+                      <button
+                        onClick={() => releaseM.mutate({ data: { id: s.id } })}
+                        disabled={releaseM.isPending}
+                        className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                      >
+                        Release Funds
+                      </button>
+                    ) : (
+                      <span className="text-xs text-muted-foreground/60">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
+
           </table>
         </div>
       </section>
