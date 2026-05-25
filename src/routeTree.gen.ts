@@ -17,6 +17,7 @@ import { Route as SwapIdRouteImport } from './routes/swap.$id'
 import { Route as AuthenticatedSwapsRouteImport } from './routes/_authenticated/swaps'
 import { Route as AuthenticatedExchangerRouteImport } from './routes/_authenticated/exchanger'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as ApiPublicHooksExpireSwapsRouteImport } from './routes/api/public/hooks/expire-swaps'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -57,6 +58,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiPublicHooksExpireSwapsRoute =
+  ApiPublicHooksExpireSwapsRouteImport.update({
+    id: '/api/public/hooks/expire-swaps',
+    path: '/api/public/hooks/expire-swaps',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/exchanger': typeof AuthenticatedExchangerRoute
   '/swaps': typeof AuthenticatedSwapsRoute
   '/swap/$id': typeof SwapIdRoute
+  '/api/public/hooks/expire-swaps': typeof ApiPublicHooksExpireSwapsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,6 +83,7 @@ export interface FileRoutesByTo {
   '/exchanger': typeof AuthenticatedExchangerRoute
   '/swaps': typeof AuthenticatedSwapsRoute
   '/swap/$id': typeof SwapIdRoute
+  '/api/public/hooks/expire-swaps': typeof ApiPublicHooksExpireSwapsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,6 +95,7 @@ export interface FileRoutesById {
   '/_authenticated/exchanger': typeof AuthenticatedExchangerRoute
   '/_authenticated/swaps': typeof AuthenticatedSwapsRoute
   '/swap/$id': typeof SwapIdRoute
+  '/api/public/hooks/expire-swaps': typeof ApiPublicHooksExpireSwapsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/exchanger'
     | '/swaps'
     | '/swap/$id'
+    | '/api/public/hooks/expire-swaps'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/exchanger'
     | '/swaps'
     | '/swap/$id'
+    | '/api/public/hooks/expire-swaps'
   id:
     | '__root__'
     | '/'
@@ -116,6 +128,7 @@ export interface FileRouteTypes {
     | '/_authenticated/exchanger'
     | '/_authenticated/swaps'
     | '/swap/$id'
+    | '/api/public/hooks/expire-swaps'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -124,6 +137,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   SwapIdRoute: typeof SwapIdRoute
+  ApiPublicHooksExpireSwapsRoute: typeof ApiPublicHooksExpireSwapsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -184,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/hooks/expire-swaps': {
+      id: '/api/public/hooks/expire-swaps'
+      path: '/api/public/hooks/expire-swaps'
+      fullPath: '/api/public/hooks/expire-swaps'
+      preLoaderRoute: typeof ApiPublicHooksExpireSwapsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -209,6 +230,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   SwapIdRoute: SwapIdRoute,
+  ApiPublicHooksExpireSwapsRoute: ApiPublicHooksExpireSwapsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
