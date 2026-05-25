@@ -5,7 +5,10 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Starfield } from "@/components/Starfield";
 import { SwapCard } from "@/components/SwapCard";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getPrices } from "@/lib/prices.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
