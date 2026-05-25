@@ -45,13 +45,13 @@ const protocols = [
   { name: "ATOMIC-SWAPS", color: "#E89D6B" },
 ];
 
-const competitors = [
-  { rank: "01", name: "Swaplix", amount: "4.2310", diff: "best", pct: 100, highlight: true },
-  { rank: "02", name: "StealthEX", amount: "4.2056", diff: "-0.6%", pct: 78 },
-  { rank: "03", name: "Instant Swaps", amount: "4.1802", diff: "-1.2%", pct: 62 },
-  { rank: "04", name: "MetaMask Swaps", amount: "4.1675", diff: "-1.5%", pct: 56 },
-  { rank: "05", name: "ShapeShift", amount: "4.1633", diff: "-1.6%", pct: 52 },
-  { rank: "06", name: "WizardSwap", amount: "4.1548", diff: "-1.8%", pct: 48 },
+const competitorSpec = [
+  { rank: "01", name: "Swaplix", spread: 0, pct: 100, highlight: true },
+  { rank: "02", name: "StealthEX", spread: -0.006, pct: 78 },
+  { rank: "03", name: "Instant Swaps", spread: -0.012, pct: 62 },
+  { rank: "04", name: "MetaMask Swaps", spread: -0.015, pct: 56 },
+  { rank: "05", name: "ShapeShift", spread: -0.016, pct: 52 },
+  { rank: "06", name: "WizardSwap", spread: -0.018, pct: 48 },
 ];
 
 const trustRows = [
