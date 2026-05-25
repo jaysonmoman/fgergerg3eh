@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { adminPostSwap, adminGrantRole, getMyRoles, claimFirstAdmin, listMySwaps } from "@/lib/swaps.functions";
+import { adminPostSwap, adminGrantRole, getMyRoles, claimFirstAdmin, listMySwaps, getAppSetting, setAppSetting, adminReleaseFunds } from "@/lib/swaps.functions";
 import { StatusPill } from "@/components/StatusPill";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -19,11 +19,34 @@ function AdminPage() {
   const grant = useServerFn(adminGrantRole);
   const claimAdmin = useServerFn(claimFirstAdmin);
   const listAll = useServerFn(listMySwaps);
+  const getSetting = useServerFn(getAppSetting);
+  const setSetting = useServerFn(setAppSetting);
+  const releaseFn = useServerFn(adminReleaseFunds);
   const qc = useQueryClient();
 
   const rolesQ = useQuery({ queryKey: ["my-roles"], queryFn: () => rolesFn() });
   const isAdmin = rolesQ.data?.roles.includes("admin");
   const allQ = useQuery({ queryKey: ["my-swaps"], queryFn: () => listAll(), enabled: !!isAdmin });
+  const autoPayQ = useQuery({
+    queryKey: ["setting", "auto_payouts_enabled"],
+    queryFn: () => getSetting({ data: { key: "auto_payouts_enabled" } }),
+    enabled: !!isAdmin,
+  });
+  const autoPayouts = autoPayQ.data?.value === true;
+
+  const toggleM = useMutation({
+    mutationFn: (v: boolean) => setSetting({ data: { key: "auto_payouts_enabled", value: v } }),
+    onSuccess: (_d, v) => {
+      toast.success(`Automated payouts ${v ? "enabled" : "disabled"}`);
+      qc.invalidateQueries({ queryKey: ["setting", "auto_payouts_enabled"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const releaseM = useMutation({
+    mutationFn: releaseFn,
+    onSuccess: () => { toast.success("Funds released"); qc.invalidateQueries({ queryKey: ["my-swaps"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const postM = useMutation({
     mutationFn: post,
@@ -61,6 +84,42 @@ function AdminPage() {
       <p className="text-eyebrow">Admin console</p>
       <h1 className="mt-2 text-4xl">Manage swaps & roles</h1>
 
+      {/* Global automated-payouts toggle */}
+      <section
+        className={`mt-8 flex flex-col gap-4 rounded-2xl border p-6 md:flex-row md:items-center md:justify-between ${
+          autoPayouts ? "border-success/40 bg-success/5" : "border-amber-500/30 bg-amber-500/5"
+        }`}
+      >
+        <div>
+          <p className="text-eyebrow">Trade manager · global</p>
+          <h2 className="mt-1 text-2xl">Enable Automated Payouts</h2>
+          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+            {autoPayouts
+              ? "ON — verified exchanger payouts auto-advance to Completed without admin review."
+              : "OFF — every user swap halts at Fulfilled and waits for an admin to click Release Funds."}
+          </p>
+        </div>
+        <button
+          onClick={() => toggleM.mutate(!autoPayouts)}
+          disabled={toggleM.isPending || autoPayQ.isLoading}
+          aria-pressed={autoPayouts}
+          aria-label="Toggle automated payouts"
+          className={`relative inline-flex h-9 w-20 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
+            autoPayouts ? "bg-success" : "bg-muted ring-1 ring-border"
+          }`}
+        >
+          <span
+            className={`inline-block h-7 w-7 transform rounded-full bg-background shadow-lg transition-transform ${
+              autoPayouts ? "translate-x-12" : "translate-x-1"
+            }`}
+          />
+          <span className={`absolute font-mono text-[0.6rem] font-bold tracking-wider ${autoPayouts ? "left-3 text-primary-foreground" : "right-3 text-muted-foreground"}`}>
+            {autoPayouts ? "ON" : "OFF"}
+          </span>
+        </button>
+      </section>
+
+
       <div className="mt-10 grid gap-6 md:grid-cols-2">
         <section className="rounded-2xl border border-border bg-card p-6">
           <h2 className="text-xl">Post an admin swap</h2>
@@ -91,7 +150,7 @@ function AdminPage() {
         <div className="mt-4 overflow-hidden rounded-2xl border border-border/60">
           <table className="w-full text-sm">
             <thead className="bg-foreground/5 text-left text-xs uppercase tracking-wider text-muted-foreground">
-              <tr><th className="px-4 py-3">ID</th><th className="px-4 py-3">Type</th><th className="px-4 py-3">Pair</th><th className="px-4 py-3">Amount</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Created</th></tr>
+              <tr><th className="px-4 py-3">ID</th><th className="px-4 py-3">Type</th><th className="px-4 py-3">Pair</th><th className="px-4 py-3">Amount</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Created</th><th className="px-4 py-3">Action</th></tr>
             </thead>
             <tbody className="divide-y divide-border/40">
               {allQ.data?.swaps.map((s) => (
@@ -102,9 +161,23 @@ function AdminPage() {
                   <td className="px-4 py-2 text-num">{s.from_amount}</td>
                   <td className="px-4 py-2"><StatusPill status={s.status} /></td>
                   <td className="px-4 py-2 text-xs text-muted-foreground">{new Date(s.created_at).toLocaleString()}</td>
+                  <td className="px-4 py-2">
+                    {s.status === "fulfilled" ? (
+                      <button
+                        onClick={() => releaseM.mutate({ data: { id: s.id } })}
+                        disabled={releaseM.isPending}
+                        className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                      >
+                        Release Funds
+                      </button>
+                    ) : (
+                      <span className="text-xs text-muted-foreground/60">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
+
           </table>
         </div>
       </section>

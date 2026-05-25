@@ -230,7 +230,28 @@ export const submitPayoutTxid = createServerFn({ method: "POST" })
       console.error("payout verify failed", err);
     }
 
-    const newStatus = row.swap_type === "admin" ? "completed" : verified ? "completed" : "fulfilled";
+    // Check the auto_payouts toggle to decide whether to auto-complete.
+    let autoPayouts = false;
+    try {
+      const { data: setting } = await supabaseAdmin
+        .from("app_settings")
+        .select("value")
+        .eq("key", "auto_payouts_enabled")
+        .maybeSingle();
+      autoPayouts = setting?.value === true;
+    } catch (err) {
+      console.error("auto_payouts read failed", err);
+    }
+
+    // Admin swaps always auto-complete. User swaps require either:
+    //  - auto-payouts ON + verified payout, or
+    //  - an admin clicking "Release Funds" (handled by adminReleaseFunds).
+    const newStatus =
+      row.swap_type === "admin"
+        ? "completed"
+        : verified && autoPayouts
+          ? "completed"
+          : "fulfilled";
 
     const { data: updated, error } = await supabase
       .from("swap_requests")
@@ -239,7 +260,68 @@ export const submitPayoutTxid = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) throw new Error(error.message);
-    return { swap: updated, verified };
+    return { swap: updated, verified, autoPayouts };
+  });
+
+// Admin manually releases funds for a `fulfilled` swap (auto-payouts OFF path).
+export const adminReleaseFunds = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin) throw new Error("Admin role required");
+    const { data: updated, error } = await supabase
+      .from("swap_requests")
+      .update({ status: "completed" })
+      .eq("id", data.id)
+      .eq("status", "fulfilled")
+      .select()
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!updated) throw new Error("Swap is not in fulfilled state");
+    return { swap: updated };
+  });
+
+// Admin-only app settings get/set
+export const getAppSetting = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { key: string }) =>
+    z.object({ key: z.string().min(1).max(64).regex(/^[a-z0-9_]+$/) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { data: row } = await supabaseAdmin
+      .from("app_settings")
+      .select("value")
+      .eq("key", data.key)
+      .maybeSingle();
+    return { value: row?.value ?? null };
+  });
+
+export const setAppSetting = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({
+      key: z.string().min(1).max(64).regex(/^[a-z0-9_]+$/),
+      value: z.unknown(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin) throw new Error("Admin role required");
+    const { error } = await supabaseAdmin
+      .from("app_settings")
+      .upsert({
+        key: data.key,
+        value: data.value as never,
+        updated_by: userId,
+        updated_at: new Date().toISOString(),
+      });
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 // Admin posts a swap without pre-depositing funds
