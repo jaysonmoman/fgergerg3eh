@@ -84,6 +84,42 @@ function AdminPage() {
       <p className="text-eyebrow">Admin console</p>
       <h1 className="mt-2 text-4xl">Manage swaps & roles</h1>
 
+      {/* Global automated-payouts toggle */}
+      <section
+        className={`mt-8 flex flex-col gap-4 rounded-2xl border p-6 md:flex-row md:items-center md:justify-between ${
+          autoPayouts ? "border-success/40 bg-success/5" : "border-amber-500/30 bg-amber-500/5"
+        }`}
+      >
+        <div>
+          <p className="text-eyebrow">Trade manager · global</p>
+          <h2 className="mt-1 text-2xl">Enable Automated Payouts</h2>
+          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+            {autoPayouts
+              ? "ON — verified exchanger payouts auto-advance to Completed without admin review."
+              : "OFF — every user swap halts at Fulfilled and waits for an admin to click Release Funds."}
+          </p>
+        </div>
+        <button
+          onClick={() => toggleM.mutate(!autoPayouts)}
+          disabled={toggleM.isPending || autoPayQ.isLoading}
+          aria-pressed={autoPayouts}
+          aria-label="Toggle automated payouts"
+          className={`relative inline-flex h-9 w-20 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
+            autoPayouts ? "bg-success" : "bg-muted ring-1 ring-border"
+          }`}
+        >
+          <span
+            className={`inline-block h-7 w-7 transform rounded-full bg-background shadow-lg transition-transform ${
+              autoPayouts ? "translate-x-12" : "translate-x-1"
+            }`}
+          />
+          <span className={`absolute font-mono text-[0.6rem] font-bold tracking-wider ${autoPayouts ? "left-3 text-primary-foreground" : "right-3 text-muted-foreground"}`}>
+            {autoPayouts ? "ON" : "OFF"}
+          </span>
+        </button>
+      </section>
+
+
       <div className="mt-10 grid gap-6 md:grid-cols-2">
         <section className="rounded-2xl border border-border bg-card p-6">
           <h2 className="text-xl">Post an admin swap</h2>
