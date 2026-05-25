@@ -305,7 +305,41 @@ function PoweredBy() {
 }
 
 function Comparison() {
-  const [amount, setAmount] = useState("$10K");
+  const [amountUsd, setAmountUsd] = useState(10000);
+  const fetchPrices = useServerFn(getPrices);
+  const pricesQ = useQuery({
+    queryKey: ["prices", "BTC", "ETH"],
+    queryFn: () => fetchPrices({ data: { symbols: ["BTC", "ETH"] } }),
+    refetchInterval: 12_000,
+  });
+  const btc = pricesQ.data?.prices?.BTC;
+  const eth = pricesQ.data?.prices?.ETH;
+
+  const rows = useMemo(() => {
+    if (!btc || !eth) return null;
+    const btcAmount = amountUsd / btc;
+    const bestEth = btcAmount * (btc / eth);
+    return competitorSpec.map((c) => ({
+      ...c,
+      amount: bestEth * (1 + c.spread),
+      diff: c.spread === 0 ? "best" : `${(c.spread * 100).toFixed(1)}%`,
+    }));
+  }, [btc, eth, amountUsd]);
+
+  const savings = useMemo(() => {
+    if (!rows || !eth) return null;
+    const best = rows[0].amount;
+    const second = rows[1].amount;
+    return (best - second) * eth;
+  }, [rows, eth]);
+
+  const presets = [
+    { label: "$1K", v: 1000 },
+    { label: "$10K", v: 10000 },
+    { label: "$100K", v: 100000 },
+    { label: "$1M", v: 1000000 },
+  ];
+
   return (
     <section className="border-t border-border/40 py-24" id="liquidity">
       <div className="mx-auto grid max-w-7xl gap-16 px-6 md:grid-cols-2 md:px-10">
@@ -317,24 +351,30 @@ function Comparison() {
             Swaplix routes you through all the best providers and gives you rates as good as a CEX for most pairs.
           </p>
           <p className="mt-12 text-2xl">
-            You save <span className="font-serif italic text-primary text-3xl">$62</span>
+            You save{" "}
+            <span className="font-serif italic text-primary text-3xl">
+              {savings != null ? `$${savings.toFixed(savings < 100 ? 2 : 0)}` : "—"}
+            </span>
           </p>
           <div className="mt-5 flex gap-2">
-            {["$1K", "$10K", "$100K", "$1M"].map((a) => (
+            {presets.map((p) => (
               <button
-                key={a}
-                onClick={() => setAmount(a)}
+                key={p.label}
+                onClick={() => setAmountUsd(p.v)}
                 className={`rounded-full px-4 py-1.5 font-mono text-xs tracking-wider transition-colors ${
-                  amount === a
+                  amountUsd === p.v
                     ? "bg-primary text-primary-foreground"
                     : "border border-border text-foreground/70 hover:text-foreground"
                 }`}
               >
-                {a}
+                {p.label}
               </button>
             ))}
           </div>
-          <p className="text-eyebrow mt-5">Quote for {amount} · BTC → ETH</p>
+          <p className="text-eyebrow mt-5">
+            Quote for ${amountUsd.toLocaleString()} · BTC → ETH
+            {btc && ` · 1 BTC = $${btc.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          </p>
           <p className="text-eyebrow mt-2 text-success/80">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-success mr-2 align-middle" />
             Live quotes · refreshed every 12s
@@ -342,7 +382,7 @@ function Comparison() {
         </div>
 
         <div className="space-y-3">
-          {competitors.map((c) => (
+          {(rows ?? competitorSpec.map((c) => ({ ...c, amount: 0, diff: "—" }))).map((c) => (
             <div
               key={c.rank}
               className={`rounded-2xl px-5 py-4 ${
@@ -366,8 +406,9 @@ function Comparison() {
                     />
                   </div>
                 </div>
-                <span className="text-num w-20 text-right text-sm">
-                  {c.amount} <span className="text-muted-foreground text-xs">ETH</span>
+                <span className="text-num w-24 text-right text-sm">
+                  {rows ? c.amount.toFixed(4) : "—"}{" "}
+                  <span className="text-muted-foreground text-xs">ETH</span>
                 </span>
                 <span
                   className={`text-num w-14 text-right text-xs ${
