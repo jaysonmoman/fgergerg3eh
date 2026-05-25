@@ -19,11 +19,34 @@ function AdminPage() {
   const grant = useServerFn(adminGrantRole);
   const claimAdmin = useServerFn(claimFirstAdmin);
   const listAll = useServerFn(listMySwaps);
+  const getSetting = useServerFn(getAppSetting);
+  const setSetting = useServerFn(setAppSetting);
+  const releaseFn = useServerFn(adminReleaseFunds);
   const qc = useQueryClient();
 
   const rolesQ = useQuery({ queryKey: ["my-roles"], queryFn: () => rolesFn() });
   const isAdmin = rolesQ.data?.roles.includes("admin");
   const allQ = useQuery({ queryKey: ["my-swaps"], queryFn: () => listAll(), enabled: !!isAdmin });
+  const autoPayQ = useQuery({
+    queryKey: ["setting", "auto_payouts_enabled"],
+    queryFn: () => getSetting({ data: { key: "auto_payouts_enabled" } }),
+    enabled: !!isAdmin,
+  });
+  const autoPayouts = autoPayQ.data?.value === true;
+
+  const toggleM = useMutation({
+    mutationFn: (v: boolean) => setSetting({ data: { key: "auto_payouts_enabled", value: v } }),
+    onSuccess: (_d, v) => {
+      toast.success(`Automated payouts ${v ? "enabled" : "disabled"}`);
+      qc.invalidateQueries({ queryKey: ["setting", "auto_payouts_enabled"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const releaseM = useMutation({
+    mutationFn: releaseFn,
+    onSuccess: () => { toast.success("Funds released"); qc.invalidateQueries({ queryKey: ["my-swaps"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const postM = useMutation({
     mutationFn: post,
