@@ -115,9 +115,20 @@ export function SwapCard() {
           </div>
           <CurrencyPicker value={to} onChange={setTo} />
         </div>
-        <p className="mt-1 font-mono text-xs text-sand-foreground/60">
-          {rate ? `1 ${from} = ${rate.toFixed(6)} ${to}` : "Loading rate…"}
-        </p>
+        <div className="mt-2 flex items-center gap-2 font-mono text-[0.65rem] text-sand-foreground/70">
+          <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          <span className="tracking-[0.15em]">LIVE</span>
+          <span key={rate ?? "x"} className="ticker-slide ml-1 tabular-nums">
+            {rate
+              ? `1 ${from} = ${rate.toFixed(6)} ${to}`
+              : `1 ${from} ⇄ ${to} · syncing market…`}
+          </span>
+          {pricesQ.data?.prices?.[from] && (
+            <span className="ml-auto tabular-nums text-sand-foreground/50">
+              ${pricesQ.data.prices[from].toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            </span>
+          )}
+        </div>
       </div>
 
       {showDest && (
