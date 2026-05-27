@@ -107,10 +107,23 @@ export function SwapCard() {
 
   return (
     <div className="relative w-full max-w-md rounded-3xl bg-sand p-6 text-sand-foreground shadow-2xl shadow-black/40">
-      <p className="text-[0.65rem] font-mono tracking-[0.2em] text-sand-foreground/60">SWAP</p>
+      <div className="flex items-center justify-between">
+        <p className="text-[0.65rem] font-mono tracking-[0.2em] text-sand-foreground/60">SWAP</p>
+        <div className="flex gap-1 rounded-full bg-sand/40 p-1 text-[0.6rem] font-mono tracking-wider ring-1 ring-sand-foreground/10">
+          {(["crypto", "fiat", "item"] as const).map((k) => (
+            <button
+              key={k}
+              onClick={() => setPayoutKind(k)}
+              className={`rounded-full px-3 py-1 transition ${payoutKind === k ? "bg-background text-foreground" : "text-sand-foreground/60 hover:text-sand-foreground"}`}
+            >
+              {k === "crypto" ? "CRYPTO" : k === "fiat" ? "INR / FIAT" : "ITEM"}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="mt-4 rounded-2xl bg-sand/40 p-5 ring-1 ring-sand-foreground/10">
-        <div className="text-[0.65rem] font-mono tracking-[0.2em] text-sand-foreground/60">FROM</div>
+        <div className="text-[0.65rem] font-mono tracking-[0.2em] text-sand-foreground/60">YOU SEND</div>
         <div className="mt-2 flex items-center justify-between gap-4">
           <input
             value={amount}
@@ -126,45 +139,96 @@ export function SwapCard() {
       </div>
 
       <div className="relative my-2 flex justify-center">
-        <button onClick={swap} className="rounded-full bg-background p-2 text-foreground ring-4 ring-sand">
+        <button onClick={swap} disabled={payoutKind !== "crypto"} className="rounded-full bg-background p-2 text-foreground ring-4 ring-sand disabled:opacity-40">
           <ArrowDownUp className="h-3 w-3" />
         </button>
       </div>
 
       <div className="rounded-2xl bg-sand/40 p-5 ring-1 ring-sand-foreground/10">
-        <div className="text-[0.65rem] font-mono tracking-[0.2em] text-sand-foreground/60">TO</div>
-        <div className="mt-2 flex items-center justify-between gap-4">
-          <div className="font-serif text-5xl text-sand-foreground/80">
-            {toAmount ? toAmount.toFixed(6).replace(/0+$/, "").replace(/\.$/, "") : "···"}
-          </div>
-          <CurrencyPicker value={to} onChange={setTo} />
+        <div className="text-[0.65rem] font-mono tracking-[0.2em] text-sand-foreground/60">
+          YOU RECEIVE {payoutKind === "fiat" ? "(FIAT)" : payoutKind === "item" ? "(ITEM)" : ""}
         </div>
-        <div className="mt-2 flex items-center gap-2 font-mono text-[0.65rem] text-sand-foreground/70">
-          <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
-          <span className="tracking-[0.15em]">LIVE</span>
-          <span key={rate ?? "x"} className="ticker-slide ml-1 tabular-nums">
-            {rate
-              ? `1 ${from} = ${rate.toFixed(6)} ${to}`
-              : `1 ${from} ⇄ ${to} · syncing market…`}
-          </span>
-          {pricesQ.data?.prices?.[from] && (
-            <span className="ml-auto tabular-nums text-sand-foreground/50">
-              ${pricesQ.data.prices[from].toLocaleString(undefined, { maximumFractionDigits: 2 })}
-            </span>
+        <div className="mt-2 flex items-center justify-between gap-4">
+          {payoutKind === "crypto" ? (
+            <>
+              <div className="font-serif text-5xl text-sand-foreground/80">
+                {toAmount ? toAmount.toFixed(6).replace(/0+$/, "").replace(/\.$/, "") : "···"}
+              </div>
+              <CurrencyPicker value={to} onChange={setTo} />
+            </>
+          ) : payoutKind === "fiat" ? (
+            <>
+              <input
+                value={manualToAmount}
+                onChange={(e) => setManualToAmount(e.target.value)}
+                inputMode="decimal"
+                placeholder="0"
+                className="w-32 bg-transparent font-serif text-5xl outline-none placeholder:text-sand-foreground/30"
+              />
+              <input
+                value={fiatCode}
+                onChange={(e) => setFiatCode(e.target.value.slice(0, 4))}
+                className="w-20 rounded-full bg-background px-3 py-1.5 text-center text-xs font-semibold uppercase text-foreground outline-none"
+              />
+            </>
+          ) : (
+            <input
+              value={itemLabel}
+              onChange={(e) => setItemLabel(e.target.value)}
+              placeholder="iPhone 15 Pro 256GB"
+              className="w-full bg-transparent font-serif text-2xl outline-none placeholder:text-sand-foreground/30"
+            />
           )}
         </div>
+        {payoutKind === "crypto" && (
+          <div className="mt-2 flex items-center gap-2 font-mono text-[0.65rem] text-sand-foreground/70">
+            <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="tracking-[0.15em]">LIVE</span>
+            <span key={rate ?? "x"} className="ticker-slide ml-1 tabular-nums">
+              {rate ? `1 ${from} = ${rate.toFixed(6)} ${to}` : `1 ${from} ⇄ ${to} · syncing market…`}
+            </span>
+          </div>
+        )}
+        {payoutKind === "item" && (
+          <input
+            value={manualToAmount}
+            onChange={(e) => setManualToAmount(e.target.value)}
+            inputMode="decimal"
+            placeholder="Agreed value in USD (e.g. 1200)"
+            className="mt-3 w-full rounded-lg bg-background/60 px-3 py-2 text-xs font-mono outline-none placeholder:text-sand-foreground/40"
+          />
+        )}
       </div>
 
       {showDest && (
-        <div className="mt-3 rounded-2xl bg-sand/40 p-4 ring-1 ring-sand-foreground/10">
-          <div className="text-[0.65rem] font-mono tracking-[0.2em] text-sand-foreground/60">DESTINATION {to} ADDRESS</div>
-          <input
-            value={destination}
-            onChange={(e) => setDestination(e.target.value)}
-            placeholder={`Your ${to} address`}
-            className="mt-2 w-full bg-transparent font-mono text-sm outline-none placeholder:text-sand-foreground/40"
-          />
-        </div>
+        <>
+          <div className="mt-3 rounded-2xl bg-sand/40 p-4 ring-1 ring-sand-foreground/10">
+            <div className="text-[0.65rem] font-mono tracking-[0.2em] text-sand-foreground/60">
+              {payoutKind === "crypto"
+                ? `DESTINATION ${to} ADDRESS`
+                : payoutKind === "fiat"
+                  ? "PAYOUT HANDLE (UPI / IBAN / BANK)"
+                  : "DELIVERY DETAILS (ADDRESS / NOTES)"}
+            </div>
+            <input
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              placeholder={payoutKind === "crypto" ? `Your ${to} address` : payoutKind === "fiat" ? "name@upi · IBAN · account number" : "Where & how the exchanger ships / hands over the item"}
+              className="mt-2 w-full bg-transparent font-mono text-sm outline-none placeholder:text-sand-foreground/40"
+            />
+          </div>
+          <div className="mt-3 rounded-2xl bg-sand/40 p-4 ring-1 ring-sand-foreground/10">
+            <div className="text-[0.65rem] font-mono tracking-[0.2em] text-sand-foreground/60">SUBJECT (visible to exchanger)</div>
+            <input
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              maxLength={280}
+              placeholder={payoutKind === "item" ? "e.g. iPhone 15 Pro, sealed, ship to Mumbai" : payoutKind === "fiat" ? "e.g. INR 40,000 via UPI" : "Optional note"}
+              className="mt-2 w-full bg-transparent font-mono text-sm outline-none placeholder:text-sand-foreground/40"
+            />
+            <p className="mt-1 text-[0.6rem] text-sand-foreground/50">You can edit this after the swap is created.</p>
+          </div>
+        </>
       )}
 
       <button
@@ -172,13 +236,7 @@ export function SwapCard() {
         disabled={create.isPending}
         className="mt-4 w-full rounded-2xl bg-primary py-4 font-mono text-sm tracking-wide text-primary-foreground transition-transform hover:scale-[1.01] disabled:opacity-60"
       >
-        {create.isPending
-          ? "Creating…"
-          : pricesQ.isLoading
-            ? "Loading quote…"
-            : showDest
-              ? "Create Swap Request"
-              : "Continue"}
+        {create.isPending ? "Creating…" : showDest ? "Create Swap Request" : "Continue"}
       </button>
     </div>
   );
