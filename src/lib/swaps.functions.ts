@@ -85,7 +85,7 @@ export const updateSwapSubject = createServerFn({ method: "POST" })
     if (Object.keys(patch).length === 0) return { ok: true };
     const { error } = await supabase
       .from("swap_requests")
-      .update(patch)
+      .update(patch as never)
       .eq("id", data.id)
       .eq("user_id", userId);
     if (error) throw new Error(error.message);
