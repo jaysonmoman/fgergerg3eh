@@ -38,6 +38,11 @@ export function SwapCard() {
   const [amount, setAmount] = useState("0.1");
   const [destination, setDestination] = useState("");
   const [showDest, setShowDest] = useState(false);
+  const [payoutKind, setPayoutKind] = useState<"crypto" | "fiat" | "item">("crypto");
+  const [fiatCode, setFiatCode] = useState("INR");
+  const [itemLabel, setItemLabel] = useState("");
+  const [manualToAmount, setManualToAmount] = useState("");
+  const [subject, setSubject] = useState("");
 
   const fetchPrices = useServerFn(getPrices);
   const createFn = useServerFn(createSwapRequest);
@@ -46,19 +51,22 @@ export function SwapCard() {
     queryKey: ["prices", from, to],
     queryFn: () => fetchPrices({ data: { symbols: [from, to] } }),
     refetchInterval: 30_000,
+    enabled: payoutKind === "crypto",
   });
 
   const rate = useMemo(() => {
+    if (payoutKind !== "crypto") return null;
     const p = pricesQ.data?.prices ?? {};
     if (!p[from] || !p[to]) return null;
     return p[from] / p[to];
-  }, [pricesQ.data, from, to]);
+  }, [pricesQ.data, from, to, payoutKind]);
 
   const toAmount = useMemo(() => {
     const a = parseFloat(amount);
+    if (payoutKind !== "crypto") return parseFloat(manualToAmount) || null;
     if (!rate || !a || isNaN(a)) return null;
     return a * rate;
-  }, [amount, rate]);
+  }, [amount, rate, payoutKind, manualToAmount]);
 
   const create = useMutation({
     mutationFn: createFn,
@@ -71,15 +79,31 @@ export function SwapCard() {
 
   const swap = () => { const f = from; setFrom(to); setTo(f); };
 
+  const effectiveTo = payoutKind === "fiat" ? fiatCode.toUpperCase() : payoutKind === "item" ? "ITEM" : to;
+
   const submit = () => {
     if (!user) { navigate({ to: "/login", search: { redirect: "/" } }); return; }
     const a = parseFloat(amount);
     if (!a || a <= 0) { toast.error("Enter a valid amount"); return; }
-    if (!destination || destination.length < 8) { setShowDest(true); toast.error("Enter your destination address"); return; }
-    create.mutate({ data: { from_currency: from as never, to_currency: to as never, from_amount: a, destination_address: destination, rate: rate ?? undefined } });
+    if (!destination || destination.length < 1) { setShowDest(true); toast.error(payoutKind === "crypto" ? "Enter your destination address" : payoutKind === "fiat" ? "Enter your payout details (UPI / bank)" : "Describe the item / delivery details"); return; }
+    if (payoutKind === "item" && !itemLabel.trim()) { toast.error("Name the item you want"); return; }
+    if (payoutKind !== "crypto" && !manualToAmount) { toast.error(payoutKind === "fiat" ? "Enter the fiat amount you expect" : "Enter the agreed value"); return; }
+
+    const finalSubject = subject.trim() || (payoutKind === "item" ? `Item: ${itemLabel}` : payoutKind === "fiat" ? `${fiatCode.toUpperCase()} ${manualToAmount} via payout details` : undefined);
+
+    create.mutate({ data: {
+      from_currency: from as never,
+      to_currency: effectiveTo,
+      from_amount: a,
+      destination_address: destination,
+      rate: rate ?? undefined,
+      payout_kind: payoutKind,
+      subject: finalSubject,
+      payout_details: payoutKind === "item" ? { item: itemLabel, instructions: destination } : payoutKind === "fiat" ? { fiat_code: fiatCode.toUpperCase(), payout_handle: destination, expected_amount: manualToAmount } : undefined,
+    } });
   };
 
-  useEffect(() => { if (from === to) setTo(SYMBOLS.find((s) => s !== from) || "ETH"); }, [from, to]);
+  useEffect(() => { if (payoutKind === "crypto" && from === to) setTo(SYMBOLS.find((s) => s !== from) || "ETH"); }, [from, to, payoutKind]);
 
   return (
     <div className="relative w-full max-w-md rounded-3xl bg-sand p-6 text-sand-foreground shadow-2xl shadow-black/40">
