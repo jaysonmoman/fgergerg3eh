@@ -134,3 +134,62 @@
 .marquee {
   animation: marquee 40s linear infinite;
 }
+
+/* Aurora drifting blobs */
+@keyframes aurora-1 {
+  0%, 100% { transform: translate3d(-10%, -10%, 0) scale(1); }
+  50% { transform: translate3d(15%, 10%, 0) scale(1.25); }
+}
+@keyframes aurora-2 {
+  0%, 100% { transform: translate3d(20%, 10%, 0) scale(1.1); }
+  50% { transform: translate3d(-15%, -15%, 0) scale(0.9); }
+}
+@keyframes aurora-3 {
+  0%, 100% { transform: translate3d(0%, 20%, 0) scale(0.95); }
+  50% { transform: translate3d(-20%, -5%, 0) scale(1.2); }
+}
+.aurora-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.aurora-bg::before,
+.aurora-bg::after,
+.aurora-bg > span {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.55;
+  will-change: transform;
+}
+.aurora-bg::before {
+  width: 55vw; height: 55vw; left: -10vw; top: -15vw;
+  background: radial-gradient(circle at 30% 30%, oklch(0.6 0.18 290), transparent 60%);
+  animation: aurora-1 22s ease-in-out infinite;
+}
+.aurora-bg::after {
+  width: 50vw; height: 50vw; right: -10vw; top: 10vw;
+  background: radial-gradient(circle at 60% 40%, oklch(0.72 0.16 55), transparent 60%);
+  animation: aurora-2 26s ease-in-out infinite;
+}
+.aurora-bg > span {
+  width: 45vw; height: 45vw; left: 25vw; bottom: -20vw;
+  background: radial-gradient(circle at 50% 50%, oklch(0.55 0.18 200), transparent 60%);
+  animation: aurora-3 30s ease-in-out infinite;
+}
+
+/* Ticker live pulse */
+@keyframes live-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+.live-dot { animation: live-dot 1.6s ease-in-out infinite; }
+
+@keyframes ticker-slide {
+  0% { transform: translateY(8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.ticker-slide { animation: ticker-slide 0.4s ease-out; }
