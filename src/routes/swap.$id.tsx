@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
-import { getSwap, submitDepositTxid } from "@/lib/swaps.functions";
+import { getSwap, submitDepositTxid, updateSwapSubject } from "@/lib/swaps.functions";
 import { StatusPill } from "@/components/StatusPill";
 import { useAuth } from "@/lib/auth";
 
@@ -19,8 +19,10 @@ function SwapDetail() {
   const { user, loading } = useAuth();
   const get = useServerFn(getSwap);
   const submit = useServerFn(submitDepositTxid);
+  const updateSubj = useServerFn(updateSwapSubject);
   const qc = useQueryClient();
   const [txid, setTxid] = useState("");
+  const [subjectDraft, setSubjectDraft] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.navigate({ to: "/login", search: { redirect: `/swap/${id}` } });
@@ -64,11 +66,47 @@ function SwapDetail() {
       <div className="mx-auto max-w-4xl px-6 py-10 md:px-10">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-eyebrow">Swap #{s.short_id}</p>
+            <p className="text-eyebrow">Swap #{s.short_id} · {s.payout_kind ?? "crypto"}</p>
             <h1 className="mt-2 text-4xl">{s.from_amount} {s.from_currency} → {s.to_amount?.toString().slice(0, 10) ?? "—"} {s.to_currency}</h1>
           </div>
           <StatusPill status={s.status} />
         </div>
+
+        <section className="mt-6 rounded-2xl bg-card p-5 ring-1 ring-border">
+          <div className="flex items-center justify-between">
+            <div className="text-eyebrow">Subject (visible to exchanger)</div>
+            {subjectDraft === null ? (
+              <button onClick={() => setSubjectDraft(s.subject ?? "")} className="text-xs text-primary hover:underline">Edit</button>
+            ) : (
+              <div className="flex gap-2">
+                <button onClick={() => setSubjectDraft(null)} className="text-xs text-muted-foreground">Cancel</button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await updateSubj({ data: { id: s.id, subject: subjectDraft ?? "" } });
+                      toast.success("Subject updated");
+                      setSubjectDraft(null);
+                      qc.invalidateQueries({ queryKey: ["swap", id] });
+                    } catch (e) { toast.error((e as Error).message); }
+                  }}
+                  className="rounded-md bg-primary px-3 py-1 text-xs text-primary-foreground"
+                >Save</button>
+              </div>
+            )}
+          </div>
+          {subjectDraft === null ? (
+            <p className="mt-2 text-sm text-foreground/80">{s.subject || <span className="text-muted-foreground italic">No subject set — add one so the exchanger knows what this swap is for.</span>}</p>
+          ) : (
+            <textarea
+              value={subjectDraft}
+              onChange={(e) => setSubjectDraft(e.target.value)}
+              maxLength={280}
+              rows={2}
+              placeholder="e.g. iPhone 15 Pro Max, sealed, ship to Mumbai · or · INR 40,000 via UPI bharatpe@okhdfc"
+              className="mt-2 w-full rounded-lg bg-background p-3 text-sm outline-none ring-1 ring-border focus:ring-primary"
+            />
+          )}
+        </section>
 
         {s.status === "pending_deposit" && (
           <section className="mt-10 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-6">

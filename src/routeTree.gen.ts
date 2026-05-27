@@ -17,6 +17,7 @@ import { Route as SwapIdRouteImport } from './routes/swap.$id'
 import { Route as AuthenticatedSwapsRouteImport } from './routes/_authenticated/swaps'
 import { Route as AuthenticatedExchangerRouteImport } from './routes/_authenticated/exchanger'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as ApiPublicHooksMonitorDepositsRouteImport } from './routes/api/public/hooks/monitor-deposits'
 import { Route as ApiPublicHooksExpireSwapsRouteImport } from './routes/api/public/hooks/expire-swaps'
 
 const SignupRoute = SignupRouteImport.update({
@@ -58,6 +59,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiPublicHooksMonitorDepositsRoute =
+  ApiPublicHooksMonitorDepositsRouteImport.update({
+    id: '/api/public/hooks/monitor-deposits',
+    path: '/api/public/hooks/monitor-deposits',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksExpireSwapsRoute =
   ApiPublicHooksExpireSwapsRouteImport.update({
     id: '/api/public/hooks/expire-swaps',
@@ -74,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/swaps': typeof AuthenticatedSwapsRoute
   '/swap/$id': typeof SwapIdRoute
   '/api/public/hooks/expire-swaps': typeof ApiPublicHooksExpireSwapsRoute
+  '/api/public/hooks/monitor-deposits': typeof ApiPublicHooksMonitorDepositsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -84,6 +92,7 @@ export interface FileRoutesByTo {
   '/swaps': typeof AuthenticatedSwapsRoute
   '/swap/$id': typeof SwapIdRoute
   '/api/public/hooks/expire-swaps': typeof ApiPublicHooksExpireSwapsRoute
+  '/api/public/hooks/monitor-deposits': typeof ApiPublicHooksMonitorDepositsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -96,6 +105,7 @@ export interface FileRoutesById {
   '/_authenticated/swaps': typeof AuthenticatedSwapsRoute
   '/swap/$id': typeof SwapIdRoute
   '/api/public/hooks/expire-swaps': typeof ApiPublicHooksExpireSwapsRoute
+  '/api/public/hooks/monitor-deposits': typeof ApiPublicHooksMonitorDepositsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/swaps'
     | '/swap/$id'
     | '/api/public/hooks/expire-swaps'
+    | '/api/public/hooks/monitor-deposits'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/swaps'
     | '/swap/$id'
     | '/api/public/hooks/expire-swaps'
+    | '/api/public/hooks/monitor-deposits'
   id:
     | '__root__'
     | '/'
@@ -129,6 +141,7 @@ export interface FileRouteTypes {
     | '/_authenticated/swaps'
     | '/swap/$id'
     | '/api/public/hooks/expire-swaps'
+    | '/api/public/hooks/monitor-deposits'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -138,6 +151,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SwapIdRoute: typeof SwapIdRoute
   ApiPublicHooksExpireSwapsRoute: typeof ApiPublicHooksExpireSwapsRoute
+  ApiPublicHooksMonitorDepositsRoute: typeof ApiPublicHooksMonitorDepositsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -198,6 +212,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/hooks/monitor-deposits': {
+      id: '/api/public/hooks/monitor-deposits'
+      path: '/api/public/hooks/monitor-deposits'
+      fullPath: '/api/public/hooks/monitor-deposits'
+      preLoaderRoute: typeof ApiPublicHooksMonitorDepositsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/expire-swaps': {
       id: '/api/public/hooks/expire-swaps'
       path: '/api/public/hooks/expire-swaps'
@@ -231,6 +252,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SwapIdRoute: SwapIdRoute,
   ApiPublicHooksExpireSwapsRoute: ApiPublicHooksExpireSwapsRoute,
+  ApiPublicHooksMonitorDepositsRoute: ApiPublicHooksMonitorDepositsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

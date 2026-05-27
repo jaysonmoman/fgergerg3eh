@@ -76,6 +76,12 @@ function ExchangerPage() {
                   <div className="mt-2 text-lg">
                     Pay <span className="font-mono">{s.to_amount}</span> {s.to_currency} → receive <span className="font-mono">{s.from_amount}</span> {s.from_currency}
                   </div>
+                  {s.subject && (
+                    <div className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-200 ring-1 ring-amber-500/20">
+                      <span className="font-mono text-[0.6rem] uppercase tracking-wider text-amber-400/80">Subject · {s.payout_kind ?? "crypto"}</span>
+                      <div className="mt-0.5">{s.subject}</div>
+                    </div>
+                  )}
                   <div className="mt-1 text-xs text-muted-foreground">User destination: <code className="font-mono">{s.destination_address}</code></div>
                 </div>
               </div>

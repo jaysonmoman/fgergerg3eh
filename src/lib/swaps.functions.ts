@@ -4,13 +4,17 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const CURRENCIES = ["BTC", "ETH", "LTC", "XMR", "SOL", "DOGE", "BCH", "USDT"] as const;
+const PAYOUT_KINDS = ["crypto", "fiat", "item"] as const;
 
 const createSwapSchema = z.object({
   from_currency: z.enum(CURRENCIES),
-  to_currency: z.enum(CURRENCIES),
+  to_currency: z.string().min(2).max(32),
   from_amount: z.number().positive().max(1_000_000),
-  destination_address: z.string().min(8).max(200),
+  destination_address: z.string().min(1).max(500),
   rate: z.number().positive().optional(),
+  payout_kind: z.enum(PAYOUT_KINDS).default("crypto"),
+  subject: z.string().max(280).optional(),
+  payout_details: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Demo deposit address — real implementation would derive a unique address
@@ -30,7 +34,7 @@ export const createSwapRequest = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    if (data.from_currency === data.to_currency) {
+    if (data.payout_kind === "crypto" && data.from_currency === data.to_currency) {
       throw new Error("From and To currencies must differ");
     }
 
@@ -50,12 +54,42 @@ export const createSwapRequest = createServerFn({ method: "POST" })
         destination_address: data.destination_address,
         deposit_address,
         status: "pending_deposit",
+        payout_kind: data.payout_kind,
+        subject: data.subject ?? null,
+        payout_details: (data.payout_details ?? null) as never,
       })
       .select()
       .single();
 
     if (error) throw new Error(error.message);
     return { swap: row };
+  });
+
+// Owner edits the subject / payout_details on an active swap so the exchanger
+// sees what the deposit is actually for (e.g. "iPhone 15 Pro · serial 123",
+// "INR ₹40,000 via UPI bharatpe@okhdfc").
+export const updateSwapSubject = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({
+      id: z.string().uuid(),
+      subject: z.string().max(280).optional(),
+      payout_details: z.record(z.string(), z.unknown()).optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const patch: Record<string, unknown> = {};
+    if (data.subject !== undefined) patch.subject = data.subject;
+    if (data.payout_details !== undefined) patch.payout_details = data.payout_details;
+    if (Object.keys(patch).length === 0) return { ok: true };
+    const { error } = await supabase
+      .from("swap_requests")
+      .update(patch as never)
+      .eq("id", data.id)
+      .eq("user_id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 export const listMySwaps = createServerFn({ method: "GET" })

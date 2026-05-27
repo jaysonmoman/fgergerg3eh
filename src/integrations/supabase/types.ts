@@ -69,10 +69,13 @@ export type Database = {
           from_currency: string
           id: string
           notes: string | null
+          payout_details: Json | null
+          payout_kind: string
           payout_txid: string | null
           rate: number | null
           short_id: string
           status: Database["public"]["Enums"]["swap_status"]
+          subject: string | null
           swap_type: Database["public"]["Enums"]["swap_type"]
           to_amount: number | null
           to_currency: string
@@ -91,10 +94,13 @@ export type Database = {
           from_currency: string
           id?: string
           notes?: string | null
+          payout_details?: Json | null
+          payout_kind?: string
           payout_txid?: string | null
           rate?: number | null
           short_id?: string
           status?: Database["public"]["Enums"]["swap_status"]
+          subject?: string | null
           swap_type?: Database["public"]["Enums"]["swap_type"]
           to_amount?: number | null
           to_currency: string
@@ -113,10 +119,13 @@ export type Database = {
           from_currency?: string
           id?: string
           notes?: string | null
+          payout_details?: Json | null
+          payout_kind?: string
           payout_txid?: string | null
           rate?: number | null
           short_id?: string
           status?: Database["public"]["Enums"]["swap_status"]
+          subject?: string | null
           swap_type?: Database["public"]["Enums"]["swap_type"]
           to_amount?: number | null
           to_currency?: string
