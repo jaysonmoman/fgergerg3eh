@@ -19,8 +19,10 @@ function SwapDetail() {
   const { user, loading } = useAuth();
   const get = useServerFn(getSwap);
   const submit = useServerFn(submitDepositTxid);
+  const updateSubj = useServerFn(updateSwapSubject);
   const qc = useQueryClient();
   const [txid, setTxid] = useState("");
+  const [subjectDraft, setSubjectDraft] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.navigate({ to: "/login", search: { redirect: `/swap/${id}` } });
