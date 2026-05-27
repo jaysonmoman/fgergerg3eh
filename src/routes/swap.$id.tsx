@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
-import { getSwap, submitDepositTxid } from "@/lib/swaps.functions";
+import { getSwap, submitDepositTxid, updateSwapSubject } from "@/lib/swaps.functions";
 import { StatusPill } from "@/components/StatusPill";
 import { useAuth } from "@/lib/auth";
 
