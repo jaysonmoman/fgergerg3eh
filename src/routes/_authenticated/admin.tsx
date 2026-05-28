@@ -69,7 +69,7 @@ function AdminPage() {
     onSuccess: () => toast.success("Role granted"),
     onError: (e: Error) => toast.error(e.message),
   });
-  const claimM = { mutate: () => toast.error("Admin is locked to the platform owner."), isPending: false };
+  
 
   const [form, setForm] = useState({ from_currency: "LTC", to_currency: "ETH", from_amount: "", to_amount: "", destination_address: "" });
   const [grantForm, setGrantForm] = useState({ email: "", role: "exchanger" });
@@ -168,17 +168,41 @@ function AdminPage() {
                   <td className="px-4 py-2"><StatusPill status={s.status} /></td>
                   <td className="px-4 py-2 text-xs text-muted-foreground">{new Date(s.created_at).toLocaleString()}</td>
                   <td className="px-4 py-2">
-                    {s.status === "fulfilled" ? (
-                      <button
-                        onClick={() => releaseM.mutate({ data: { id: s.id } })}
-                        disabled={releaseM.isPending}
-                        className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
-                      >
-                        Release Funds
-                      </button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground/60">—</span>
-                    )}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {s.status === "fulfilled" && (
+                        <button
+                          onClick={() => releaseM.mutate({ data: { id: s.id } })}
+                          disabled={releaseM.isPending}
+                          className="rounded-lg bg-primary px-2.5 py-1 text-[0.65rem] font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                        >Release</button>
+                      )}
+                      {!["completed", "expired", "refunded", "disputed"].includes(s.status) && (
+                        <button
+                          onClick={() => { if (confirm("Freeze this swap into dispute? User & exchanger will be locked out.")) disputeM.mutate({ data: { id: s.id } }); }}
+                          disabled={disputeM.isPending}
+                          className="rounded-lg bg-destructive/80 px-2.5 py-1 text-[0.65rem] font-medium text-destructive-foreground hover:opacity-90 disabled:opacity-50"
+                        >Freeze</button>
+                      )}
+                      {s.status === "disputed" && (
+                        <>
+                          <button
+                            onClick={() => resolveM.mutate({ data: { id: s.id, action: "refund" } })}
+                            className="rounded-lg bg-muted px-2.5 py-1 text-[0.65rem] font-medium hover:opacity-90"
+                          >Refund</button>
+                          <button
+                            onClick={() => resolveM.mutate({ data: { id: s.id, action: "release" } })}
+                            className="rounded-lg bg-primary px-2.5 py-1 text-[0.65rem] font-medium text-primary-foreground hover:opacity-90"
+                          >Release</button>
+                          <button
+                            onClick={() => { if (confirm("SWEEP: mark complete and pocket escrow. Confirm fraud first.")) resolveM.mutate({ data: { id: s.id, action: "sweep" } }); }}
+                            className="rounded-lg bg-amber-600 px-2.5 py-1 text-[0.65rem] font-medium text-white hover:opacity-90"
+                          >Sweep</button>
+                        </>
+                      )}
+                      {["completed", "expired", "refunded"].includes(s.status) && (
+                        <span className="text-xs text-muted-foreground/60">—</span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
