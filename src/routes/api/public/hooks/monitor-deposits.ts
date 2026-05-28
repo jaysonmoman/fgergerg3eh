@@ -85,9 +85,21 @@ export const Route = createFileRoute("/api/public/hooks/monitor-deposits")({
           const txid = match.hash ?? match.transaction_hash;
           if (!txid) continue;
 
+          // Try to read block confirmations from blockchair's tx detail
+          let confirmations = 1;
+          try {
+            const tr = await fetch(`https://api.blockchair.com/${chain.slug}/dashboards/transaction/${encodeURIComponent(txid)}`);
+            if (tr.ok) {
+              const tj = (await tr.json()) as { context?: { state?: number }; data?: Record<string, { transaction?: { block_id?: number } }> };
+              const head = tj.context?.state ?? 0;
+              const block = tj.data?.[txid]?.transaction?.block_id ?? 0;
+              if (head > 0 && block > 0) confirmations = Math.max(1, head - block + 1);
+            }
+          } catch (e) { console.error("confirmations fetch failed", e); }
+
           const { error: upErr } = await supabaseAdmin
             .from("swap_requests")
-            .update({ status: "escrowed", deposit_txid: txid })
+            .update({ status: "escrowed", deposit_txid: txid, confirmations })
             .eq("id", swap.id)
             .eq("status", "pending_deposit");
           if (!upErr) {
