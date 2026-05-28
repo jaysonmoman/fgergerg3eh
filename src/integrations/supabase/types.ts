@@ -58,6 +58,7 @@ export type Database = {
       }
       swap_requests: {
         Row: {
+          confirmations: number
           created_at: string
           deposit_address: string | null
           deposit_txid: string | null
@@ -83,6 +84,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          confirmations?: number
           created_at?: string
           deposit_address?: string | null
           deposit_txid?: string | null
@@ -108,6 +110,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          confirmations?: number
           created_at?: string
           deposit_address?: string | null
           deposit_txid?: string | null
@@ -179,6 +182,7 @@ export type Database = {
         | "expired"
         | "refunded"
         | "admin_pending"
+        | "disputed"
       swap_type: "user" | "admin"
     }
     CompositeTypes: {
@@ -317,6 +321,7 @@ export const Constants = {
         "expired",
         "refunded",
         "admin_pending",
+        "disputed",
       ],
       swap_type: ["user", "admin"],
     },

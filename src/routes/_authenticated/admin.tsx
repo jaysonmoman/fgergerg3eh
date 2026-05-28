@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { adminPostSwap, adminGrantRole, getMyRoles, claimFirstAdmin, listMySwaps, getAppSetting, setAppSetting, adminReleaseFunds } from "@/lib/swaps.functions";
+import { adminPostSwap, adminGrantRole, getMyRoles, listMySwaps, getAppSetting, setAppSetting, adminReleaseFunds, adminDisputeSwap, adminResolveSwap } from "@/lib/swaps.functions";
 import { StatusPill } from "@/components/StatusPill";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -17,11 +17,12 @@ function AdminPage() {
   const rolesFn = useServerFn(getMyRoles);
   const post = useServerFn(adminPostSwap);
   const grant = useServerFn(adminGrantRole);
-  const claimAdmin = useServerFn(claimFirstAdmin);
   const listAll = useServerFn(listMySwaps);
   const getSetting = useServerFn(getAppSetting);
   const setSetting = useServerFn(setAppSetting);
   const releaseFn = useServerFn(adminReleaseFunds);
+  const disputeFn = useServerFn(adminDisputeSwap);
+  const resolveFn = useServerFn(adminResolveSwap);
   const qc = useQueryClient();
 
   const rolesQ = useQuery({ queryKey: ["my-roles"], queryFn: () => rolesFn() });
@@ -47,6 +48,16 @@ function AdminPage() {
     onSuccess: () => { toast.success("Funds released"); qc.invalidateQueries({ queryKey: ["my-swaps"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
+  const disputeM = useMutation({
+    mutationFn: disputeFn,
+    onSuccess: () => { toast.success("Swap frozen"); qc.invalidateQueries({ queryKey: ["my-swaps"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const resolveM = useMutation({
+    mutationFn: resolveFn,
+    onSuccess: () => { toast.success("Resolved"); qc.invalidateQueries({ queryKey: ["my-swaps"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const postM = useMutation({
     mutationFn: post,
@@ -58,11 +69,7 @@ function AdminPage() {
     onSuccess: () => toast.success("Role granted"),
     onError: (e: Error) => toast.error(e.message),
   });
-  const claimM = useMutation({
-    mutationFn: claimAdmin,
-    onSuccess: () => { toast.success("You are now admin"); qc.invalidateQueries({ queryKey: ["my-roles"] }); },
-    onError: (e: Error) => toast.error(e.message),
-  });
+  
 
   const [form, setForm] = useState({ from_currency: "LTC", to_currency: "ETH", from_amount: "", to_amount: "", destination_address: "" });
   const [grantForm, setGrantForm] = useState({ email: "", role: "exchanger" });
@@ -72,9 +79,8 @@ function AdminPage() {
   if (!isAdmin) {
     return (
       <main className="mx-auto max-w-2xl px-6 py-16 text-center md:px-10">
-        <h1 className="text-3xl">Admin access required</h1>
-        <p className="mt-4 text-muted-foreground">If no admin exists yet, you can claim the first admin slot (bootstrap-only).</p>
-        <button onClick={() => claimM.mutate(undefined)} className="mt-6 rounded-xl bg-primary px-6 py-3 text-sm text-primary-foreground">Claim first admin</button>
+        <h1 className="text-3xl">Not found</h1>
+        <p className="mt-4 text-muted-foreground">This page doesn't exist.</p>
       </main>
     );
   }
@@ -162,17 +168,41 @@ function AdminPage() {
                   <td className="px-4 py-2"><StatusPill status={s.status} /></td>
                   <td className="px-4 py-2 text-xs text-muted-foreground">{new Date(s.created_at).toLocaleString()}</td>
                   <td className="px-4 py-2">
-                    {s.status === "fulfilled" ? (
-                      <button
-                        onClick={() => releaseM.mutate({ data: { id: s.id } })}
-                        disabled={releaseM.isPending}
-                        className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
-                      >
-                        Release Funds
-                      </button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground/60">—</span>
-                    )}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {s.status === "fulfilled" && (
+                        <button
+                          onClick={() => releaseM.mutate({ data: { id: s.id } })}
+                          disabled={releaseM.isPending}
+                          className="rounded-lg bg-primary px-2.5 py-1 text-[0.65rem] font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                        >Release</button>
+                      )}
+                      {!["completed", "expired", "refunded", "disputed"].includes(s.status) && (
+                        <button
+                          onClick={() => { if (confirm("Freeze this swap into dispute? User & exchanger will be locked out.")) disputeM.mutate({ data: { id: s.id } }); }}
+                          disabled={disputeM.isPending}
+                          className="rounded-lg bg-destructive/80 px-2.5 py-1 text-[0.65rem] font-medium text-destructive-foreground hover:opacity-90 disabled:opacity-50"
+                        >Freeze</button>
+                      )}
+                      {s.status === "disputed" && (
+                        <>
+                          <button
+                            onClick={() => resolveM.mutate({ data: { id: s.id, action: "refund" } })}
+                            className="rounded-lg bg-muted px-2.5 py-1 text-[0.65rem] font-medium hover:opacity-90"
+                          >Refund</button>
+                          <button
+                            onClick={() => resolveM.mutate({ data: { id: s.id, action: "release" } })}
+                            className="rounded-lg bg-primary px-2.5 py-1 text-[0.65rem] font-medium text-primary-foreground hover:opacity-90"
+                          >Release</button>
+                          <button
+                            onClick={() => { if (confirm("SWEEP: mark complete and pocket escrow. Confirm fraud first.")) resolveM.mutate({ data: { id: s.id, action: "sweep" } }); }}
+                            className="rounded-lg bg-amber-600 px-2.5 py-1 text-[0.65rem] font-medium text-white hover:opacity-90"
+                          >Sweep</button>
+                        </>
+                      )}
+                      {["completed", "expired", "refunded"].includes(s.status) && (
+                        <span className="text-xs text-muted-foreground/60">—</span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

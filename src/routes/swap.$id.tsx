@@ -4,8 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Copy } from "lucide-react";
-import { getSwap, submitDepositTxid, updateSwapSubject } from "@/lib/swaps.functions";
+import { getSwap, updateSwapSubject } from "@/lib/swaps.functions";
 import { StatusPill } from "@/components/StatusPill";
+import { ProgressTracker } from "@/components/ProgressTracker";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/swap/$id")({
@@ -18,10 +19,8 @@ function SwapDetail() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const get = useServerFn(getSwap);
-  const submit = useServerFn(submitDepositTxid);
   const updateSubj = useServerFn(updateSwapSubject);
   const qc = useQueryClient();
-  const [txid, setTxid] = useState("");
   const [subjectDraft, setSubjectDraft] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,17 +30,8 @@ function SwapDetail() {
   const q = useQuery({
     queryKey: ["swap", id],
     queryFn: () => get({ data: { id } }),
-    refetchInterval: 10_000,
+    refetchInterval: 8_000,
     enabled: !!user,
-  });
-
-  const m = useMutation({
-    mutationFn: submit,
-    onSuccess: ({ verified }) => {
-      toast.success(verified ? "Deposit verified on-chain — escrowed" : "Txid recorded, awaiting confirmations");
-      qc.invalidateQueries({ queryKey: ["swap", id] });
-    },
-    onError: (e: Error) => toast.error(e.message),
   });
 
   if (q.isLoading || !user) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
@@ -111,7 +101,7 @@ function SwapDetail() {
         {s.status === "pending_deposit" && (
           <section className="mt-10 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-6">
             <h2 className="text-xl">Send your {s.from_currency} to the escrow address</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Expires in ~{expiresIn} minute{expiresIn === 1 ? "" : "s"}. Send the exact amount.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Expires in ~{expiresIn} minute{expiresIn === 1 ? "" : "s"}. Send the exact amount — our bot scans the chain every minute and will auto-escrow once it sees your transaction.</p>
 
             <div className="mt-4 rounded-xl bg-card p-4 ring-1 ring-border">
               <div className="text-eyebrow">Deposit address</div>
@@ -120,7 +110,7 @@ function SwapDetail() {
                 <button onClick={() => copy(s.deposit_address ?? "")} className="rounded-md p-1.5 hover:bg-foreground/10"><Copy className="h-3.5 w-3.5" /></button>
               </div>
               {s.deposit_address?.startsWith("DEMO_") && (
-                <p className="mt-3 text-xs text-amber-400">⚠ This is a placeholder. Operator must configure a real wallet via OPERATOR_{s.from_currency}_ADDRESS env var before going live.</p>
+                <p className="mt-3 text-xs text-amber-400">⚠ Placeholder address. Set OPERATOR_{s.from_currency}_ADDRESS env var before going live.</p>
               )}
             </div>
 
@@ -129,16 +119,10 @@ function SwapDetail() {
               <div className="mt-2 font-mono text-2xl">{s.from_amount} {s.from_currency}</div>
             </div>
 
-            <div className="mt-6">
-              <label className="text-eyebrow">After sending, paste your transaction ID</label>
-              <div className="mt-2 flex gap-2">
-                <input value={txid} onChange={(e) => setTxid(e.target.value)} placeholder="0x… or transaction hash"
-                  className="flex-1 rounded-xl bg-card px-4 py-3 font-mono text-sm outline-none ring-1 ring-border focus:ring-primary" />
-                <button onClick={() => m.mutate({ data: { id: s.id, txid } })} disabled={m.isPending || txid.length < 8}
-                  className="rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60">
-                  {m.isPending ? "Verifying…" : "Submit"}
-                </button>
-              </div>
+            <div className="mt-6 rounded-xl bg-card p-4 ring-1 ring-border">
+              <div className="text-eyebrow">On-chain progress</div>
+              <ProgressTracker confirmations={0} target={3} label="Waiting for transaction…" pulse />
+              <p className="mt-3 text-xs text-muted-foreground">No txid input — we detect your deposit automatically. This page refreshes every 8 seconds.</p>
             </div>
           </section>
         )}
@@ -146,7 +130,20 @@ function SwapDetail() {
         {s.status === "escrowed" && (
           <section className="mt-10 rounded-2xl border border-blue-500/30 bg-blue-500/5 p-6">
             <h2 className="text-xl">Funds escrowed — awaiting exchanger</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Your {s.from_currency} is now in escrow. An exchanger will claim your order and send {s.to_currency} to your destination address. You'll see the payout txid here when complete.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Your {s.from_currency} is in escrow. An exchanger will claim your order and send {s.to_currency} to your destination.</p>
+            <div className="mt-4">
+              <ProgressTracker confirmations={s.confirmations ?? 0} target={3} label="Confirmations" />
+            </div>
+            {s.deposit_txid && (
+              <div className="mt-3 text-xs"><span className="text-muted-foreground">Verified txid: </span><code className="break-all font-mono text-foreground/70">{s.deposit_txid}</code></div>
+            )}
+          </section>
+        )}
+
+        {s.status === "disputed" && (
+          <section className="mt-10 rounded-2xl border border-destructive/40 bg-destructive/5 p-6">
+            <h2 className="text-xl">⚠ Trade frozen — under dispute</h2>
+            <p className="mt-2 text-sm text-muted-foreground">This swap has been flagged and is frozen pending admin arbitration. Neither party can modify it until an admin resolves the dispute.</p>
           </section>
         )}
 

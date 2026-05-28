@@ -319,6 +319,63 @@ export const adminReleaseFunds = createServerFn({ method: "POST" })
     return { swap: updated };
   });
 
+// Admin freezes a swap into a disputed state — locks out user + exchanger writes.
+export const adminDisputeSwap = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: z.string().uuid(), reason: z.string().max(500).optional() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin) throw new Error("Admin role required");
+    const { data: updated, error } = await supabase
+      .from("swap_requests")
+      .update({ status: "disputed" as never, notes: data.reason ?? "Frozen by admin pending arbitration" })
+      .eq("id", data.id)
+      .select()
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!updated) throw new Error("Swap not found");
+    return { swap: updated };
+  });
+
+// Admin resolves a disputed (or any) swap: refund | release | sweep
+// - refund:  status -> refunded (user gets deposit back, off-chain action by operator)
+// - release: status -> completed (exchanger gets paid, user got their leg)
+// - sweep:   status -> completed, notes 'SWEPT' (operator pockets the escrow on confirmed fraud)
+export const adminResolveSwap = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({
+      id: z.string().uuid(),
+      action: z.enum(["refund", "release", "sweep"]),
+      note: z.string().max(500).optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin) throw new Error("Admin role required");
+    const next =
+      data.action === "refund" ? "refunded" :
+      data.action === "release" ? "completed" :
+      "completed";
+    const noteTag =
+      data.action === "sweep" ? `SWEPT by admin · ${data.note ?? "fraud confirmed"}` :
+      data.action === "refund" ? `REFUNDED by admin · ${data.note ?? ""}` :
+      `RELEASED by admin · ${data.note ?? ""}`;
+    const { data: updated, error } = await supabase
+      .from("swap_requests")
+      .update({ status: next as never, notes: noteTag })
+      .eq("id", data.id)
+      .select()
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!updated) throw new Error("Swap not found");
+    return { swap: updated };
+  });
+
 // Admin-only app settings get/set
 export const getAppSetting = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

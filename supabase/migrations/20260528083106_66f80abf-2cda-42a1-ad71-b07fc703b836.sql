@@ -1,0 +1,1 @@
+ALTER TYPE swap_status ADD VALUE IF NOT EXISTS 'disputed';
