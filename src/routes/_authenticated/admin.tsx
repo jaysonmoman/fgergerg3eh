@@ -55,7 +55,7 @@ function AdminPage() {
   });
   const resolveM = useMutation({
     mutationFn: resolveFn,
-    onSuccess: (_d, v) => { toast.success(`Resolved · ${v.data.action}`); qc.invalidateQueries({ queryKey: ["my-swaps"] }); },
+    onSuccess: () => { toast.success("Resolved"); qc.invalidateQueries({ queryKey: ["my-swaps"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -79,9 +79,8 @@ function AdminPage() {
   if (!isAdmin) {
     return (
       <main className="mx-auto max-w-2xl px-6 py-16 text-center md:px-10">
-        <h1 className="text-3xl">Admin access required</h1>
-        <p className="mt-4 text-muted-foreground">If no admin exists yet, you can claim the first admin slot (bootstrap-only).</p>
-        <button onClick={() => claimM.mutate(undefined)} className="mt-6 rounded-xl bg-primary px-6 py-3 text-sm text-primary-foreground">Claim first admin</button>
+        <h1 className="text-3xl">Not found</h1>
+        <p className="mt-4 text-muted-foreground">This page doesn't exist.</p>
       </main>
     );
   }
