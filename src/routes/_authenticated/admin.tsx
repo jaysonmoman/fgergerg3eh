@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { adminPostSwap, adminGrantRole, getMyRoles, claimFirstAdmin, listMySwaps, getAppSetting, setAppSetting, adminReleaseFunds } from "@/lib/swaps.functions";
+import { adminPostSwap, adminGrantRole, getMyRoles, listMySwaps, getAppSetting, setAppSetting, adminReleaseFunds, adminDisputeSwap, adminResolveSwap } from "@/lib/swaps.functions";
 import { StatusPill } from "@/components/StatusPill";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -17,11 +17,12 @@ function AdminPage() {
   const rolesFn = useServerFn(getMyRoles);
   const post = useServerFn(adminPostSwap);
   const grant = useServerFn(adminGrantRole);
-  const claimAdmin = useServerFn(claimFirstAdmin);
   const listAll = useServerFn(listMySwaps);
   const getSetting = useServerFn(getAppSetting);
   const setSetting = useServerFn(setAppSetting);
   const releaseFn = useServerFn(adminReleaseFunds);
+  const disputeFn = useServerFn(adminDisputeSwap);
+  const resolveFn = useServerFn(adminResolveSwap);
   const qc = useQueryClient();
 
   const rolesQ = useQuery({ queryKey: ["my-roles"], queryFn: () => rolesFn() });
@@ -47,6 +48,16 @@ function AdminPage() {
     onSuccess: () => { toast.success("Funds released"); qc.invalidateQueries({ queryKey: ["my-swaps"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
+  const disputeM = useMutation({
+    mutationFn: disputeFn,
+    onSuccess: () => { toast.success("Swap frozen"); qc.invalidateQueries({ queryKey: ["my-swaps"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const resolveM = useMutation({
+    mutationFn: resolveFn,
+    onSuccess: (_d, v) => { toast.success(`Resolved · ${v.data.action}`); qc.invalidateQueries({ queryKey: ["my-swaps"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const postM = useMutation({
     mutationFn: post,
@@ -58,11 +69,7 @@ function AdminPage() {
     onSuccess: () => toast.success("Role granted"),
     onError: (e: Error) => toast.error(e.message),
   });
-  const claimM = useMutation({
-    mutationFn: claimAdmin,
-    onSuccess: () => { toast.success("You are now admin"); qc.invalidateQueries({ queryKey: ["my-roles"] }); },
-    onError: (e: Error) => toast.error(e.message),
-  });
+  const claimM = { mutate: () => toast.error("Admin is locked to the platform owner."), isPending: false };
 
   const [form, setForm] = useState({ from_currency: "LTC", to_currency: "ETH", from_amount: "", to_amount: "", destination_address: "" });
   const [grantForm, setGrantForm] = useState({ email: "", role: "exchanger" });
