@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Copy } from "lucide-react";
 import { getSwap, updateSwapSubject } from "@/lib/swaps.functions";
 import { StatusPill } from "@/components/StatusPill";
+import { ProgressTracker } from "@/components/ProgressTracker";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/swap/$id")({
