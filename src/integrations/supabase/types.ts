@@ -179,6 +179,7 @@ export type Database = {
         | "expired"
         | "refunded"
         | "admin_pending"
+        | "disputed"
       swap_type: "user" | "admin"
     }
     CompositeTypes: {
@@ -317,6 +318,7 @@ export const Constants = {
         "expired",
         "refunded",
         "admin_pending",
+        "disputed",
       ],
       swap_type: ["user", "admin"],
     },
