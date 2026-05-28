@@ -1,8 +1,11 @@
 import { createFileRoute, Outlet, Link, useRouter, redirect } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Starfield } from "@/components/Starfield";
+import { getMyRoles } from "@/lib/swaps.functions";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
@@ -11,6 +14,9 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthenticatedLayout() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const rolesFn = useServerFn(getMyRoles);
+  const rolesQ = useQuery({ queryKey: ["my-roles"], queryFn: () => rolesFn(), enabled: !!user });
+  const isAdmin = rolesQ.data?.roles.includes("admin") ?? false;
   useEffect(() => {
     if (!loading && !user) router.navigate({ to: "/login", search: { redirect: window.location.pathname } });
   }, [loading, user, router]);
@@ -47,7 +53,9 @@ function AuthenticatedLayout() {
             <nav className="flex items-center gap-6 text-sm text-foreground/80">
               <Link to="/swaps" className="hover:text-foreground" activeProps={{ className: "text-primary" }}>My Swaps</Link>
               <Link to="/exchanger" className="hover:text-foreground" activeProps={{ className: "text-primary" }}>Exchanger</Link>
-              <Link to="/admin" className="hover:text-foreground" activeProps={{ className: "text-primary" }}>Admin</Link>
+              {isAdmin && (
+                <Link to="/admin" className="hover:text-foreground" activeProps={{ className: "text-primary" }}>Admin</Link>
+              )}
               <span className="text-xs text-muted-foreground hidden md:inline">{user.email}</span>
               <button onClick={signOut} className="rounded-full border border-border px-3 py-1 text-xs hover:bg-foreground/5">Sign out</button>
             </nav>
