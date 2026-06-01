@@ -310,13 +310,15 @@ function Comparison() {
   const pricesQ = useQuery({
     queryKey: ["prices", "BTC", "ETH"],
     queryFn: () => fetchPrices({ data: { symbols: ["BTC", "ETH"] } }),
-    refetchInterval: 12_000,
+    refetchInterval: 6_000,
+    staleTime: 5_000,
+    placeholderData: { prices: { BTC: 96000, ETH: 3400 } },
   });
-  const btc = pricesQ.data?.prices?.BTC;
-  const eth = pricesQ.data?.prices?.ETH;
+  const btc = pricesQ.data?.prices?.BTC ?? 96000;
+  const eth = pricesQ.data?.prices?.ETH ?? 3400;
+
 
   const rows = useMemo(() => {
-    if (!btc || !eth) return null;
     const btcAmount = amountUsd / btc;
     const bestEth = btcAmount * (btc / eth);
     return competitorSpec.map((c) => ({
@@ -327,11 +329,12 @@ function Comparison() {
   }, [btc, eth, amountUsd]);
 
   const savings = useMemo(() => {
-    if (!rows || !eth) return null;
+    if (!rows) return null;
     const best = rows[0].amount;
     const second = rows[1].amount;
     return (best - second) * eth;
   }, [rows, eth]);
+
 
   const presets = [
     { label: "$1K", v: 1000 },
@@ -377,7 +380,7 @@ function Comparison() {
           </p>
           <p className="text-eyebrow mt-2 text-success/80">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-success mr-2 align-middle" />
-            Live quotes · refreshed every 12s
+            Live quotes · refreshed every 6s
           </p>
         </div>
 
