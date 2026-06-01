@@ -382,7 +382,10 @@ export const getAppSetting = createServerFn({ method: "GET" })
   .inputValidator((input: { key: string }) =>
     z.object({ key: z.string().min(1).max(64).regex(/^[a-z0-9_]+$/) }).parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin) throw new Error("Admin role required");
     const { data: row } = await supabaseAdmin
       .from("app_settings")
       .select("value")
@@ -390,6 +393,7 @@ export const getAppSetting = createServerFn({ method: "GET" })
       .maybeSingle();
     return { value: row?.value ?? null };
   });
+
 
 export const setAppSetting = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

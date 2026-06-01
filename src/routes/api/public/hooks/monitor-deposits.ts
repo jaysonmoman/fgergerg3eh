@@ -37,7 +37,13 @@ async function checkAddress(chainSlug: string, address: string): Promise<AddrTx[
 export const Route = createFileRoute("/api/public/hooks/monitor-deposits")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        const apikey = request.headers.get("apikey") ?? request.headers.get("x-cron-key");
+        const expected = process.env.SUPABASE_PUBLISHABLE_KEY;
+        if (!expected || apikey !== expected) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
         const { data: pending, error } = await supabaseAdmin
           .from("swap_requests")
           .select("id, from_currency, from_amount, deposit_address, created_at")
