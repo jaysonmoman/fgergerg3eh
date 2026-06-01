@@ -50,7 +50,8 @@ export function SwapCard() {
   const pricesQ = useQuery({
     queryKey: ["prices", from, to],
     queryFn: () => fetchPrices({ data: { symbols: [from, to] } }),
-    refetchInterval: 30_000,
+    refetchInterval: 5_000,
+    staleTime: 4_000,
     enabled: payoutKind === "crypto",
   });
 
