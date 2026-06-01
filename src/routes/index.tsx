@@ -380,7 +380,7 @@ function Comparison() {
           </p>
           <p className="text-eyebrow mt-2 text-success/80">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-success mr-2 align-middle" />
-            Live quotes · refreshed every 12s
+            Live quotes · refreshed every 6s
           </p>
         </div>
 
