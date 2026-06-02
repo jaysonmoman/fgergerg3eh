@@ -18,24 +18,25 @@ export function SiteHeader() {
           <img src="/favicon.png" alt="Swaplix" className="h-9 w-9 rounded-full" />
           <span className="font-serif text-xl tracking-wide">SWAPLIX</span>
         </Link>
-        <nav className="hidden items-center gap-8 text-sm text-foreground/80 md:flex">
-          <a href="/#how" className="hover:text-foreground transition-colors">How it works</a>
+        <nav className="hidden items-center gap-7 text-sm text-foreground/80 md:flex">
+          <a href="/#how" className="hover:text-foreground transition-colors">How</a>
           <a href="/#verify" className="hover:text-foreground transition-colors">Verify</a>
           <a href="/#liquidity" className="hover:text-foreground transition-colors">Liquidity</a>
-          <a href="/#atomic" className="hover:text-foreground transition-colors">Atomic Swap</a>
+          <Link to="/faq" className="hover:text-foreground transition-colors">FAQ</Link>
           {user ? (
             <>
               <Link to="/swaps" className="hover:text-foreground transition-colors">My Swaps</Link>
-              <button onClick={signOut} className="rounded-full border border-foreground/30 px-4 py-1.5 hover:bg-foreground/5">
-                Sign out
-              </button>
+              <a href="/#swap" className="rounded-full bg-primary px-4 py-1.5 text-primary-foreground hover:scale-[1.02] transition-transform">Start swap</a>
+              <button onClick={signOut} className="text-xs text-muted-foreground hover:text-foreground">Sign out</button>
             </>
           ) : (
-            <Link to="/login" search={{ redirect: "/swaps" }} className="rounded-full bg-primary px-4 py-1.5 text-primary-foreground hover:scale-[1.02] transition-transform">
-              Sign in
-            </Link>
+            <>
+              <a href="/#swap" className="rounded-full bg-primary px-4 py-1.5 text-primary-foreground hover:scale-[1.02] transition-transform">Start swap</a>
+              <Link to="/login" search={{ redirect: "/swaps" }} className="text-xs text-muted-foreground hover:text-foreground">Sign in</Link>
+            </>
           )}
         </nav>
+        <a href="/#swap" className="md:hidden rounded-full bg-primary px-4 py-1.5 text-xs text-primary-foreground">Start swap</a>
       </div>
     </header>
   );
