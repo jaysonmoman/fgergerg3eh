@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /exchanger
+Disallow: /swaps
+Disallow: /swap/
+Disallow: /account
+Disallow: /api/
+
+Sitemap: https://swaplix.lovable.app/sitemap.xml
