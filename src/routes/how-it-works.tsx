@@ -47,7 +47,7 @@ function HowPage() {
         </ol>
 
         <div className="mt-12 text-center">
-          <Link to="/" hash="swap" className="inline-block rounded-full bg-primary px-6 py-3 text-sm text-primary-foreground hover:scale-[1.02] transition-transform">Start your first swap →</Link>
+          <a href="/#swap" className="inline-block rounded-full bg-primary px-6 py-3 text-sm text-primary-foreground hover:scale-[1.02] transition-transform">Start your first swap →</a>
         </div>
       </main>
       <SiteFooter />
