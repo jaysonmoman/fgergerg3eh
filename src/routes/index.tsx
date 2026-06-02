@@ -232,22 +232,22 @@ function Hero() {
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <a
-              href="#"
+              href="#swap"
               className="group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-transform hover:scale-[1.02]"
             >
-              Open app
+              Start a swap
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </a>
             <a
-              href="#"
+              href="/how-it-works"
               className="inline-flex items-center gap-2 rounded-full border border-foreground/30 px-6 py-3 text-sm font-medium text-foreground hover:bg-foreground/5"
             >
-              Open Source
+              How it works
             </a>
           </div>
         </div>
 
-        <div className="flex justify-center md:justify-end">
+        <div id="swap" className="flex justify-center md:justify-end scroll-mt-32">
           <SwapCard />
         </div>
       </div>
