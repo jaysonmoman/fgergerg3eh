@@ -56,6 +56,7 @@ function AuthenticatedLayout() {
               {isAdmin && (
                 <Link to="/admin" className="hover:text-foreground" activeProps={{ className: "text-primary" }}>Admin</Link>
               )}
+              <Link to="/account" className="hover:text-foreground" activeProps={{ className: "text-primary" }}>Account</Link>
               <span className="text-xs text-muted-foreground hidden md:inline">{user.email}</span>
               <button onClick={signOut} className="rounded-full border border-border px-3 py-1 text-xs hover:bg-foreground/5">Sign out</button>
             </nav>

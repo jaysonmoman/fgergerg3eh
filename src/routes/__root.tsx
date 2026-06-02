@@ -65,6 +65,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Swaplix — Escrow-Secured P2P Crypto Swaps" },
       { property: "og:description", content: "Swap LTC, BTC, ETH, XMR peer-to-peer through Swaplix's escrow protocol." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Swaplix" },
       { name: "twitter:card", content: "summary" },
     ],
     links: [
@@ -72,6 +73,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
     ],
+    scripts: [{
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: "Swaplix",
+        url: "https://swaplix.lovable.app",
+        logo: "https://swaplix.lovable.app/favicon.png",
+        sameAs: [],
+      }),
+    }],
   }),
   shellComponent: RootShell,
   component: RootComponent,
