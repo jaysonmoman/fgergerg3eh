@@ -577,16 +577,16 @@ function CTASection() {
         </p>
         <div className="mt-10 flex justify-center gap-3">
           <a
-            href="#"
+            href="#swap"
             className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:scale-[1.02] transition-transform"
           >
-            Open Swaplix <ArrowRight className="h-4 w-4" />
+            Start a swap <ArrowRight className="h-4 w-4" />
           </a>
           <a
-            href="#"
+            href="/faq"
             className="inline-flex items-center gap-2 rounded-full border border-foreground/30 px-6 py-3 text-sm font-medium hover:bg-foreground/5"
           >
-            Open Source
+            Read the FAQ
           </a>
         </div>
       </div>
