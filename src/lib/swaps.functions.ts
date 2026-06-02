@@ -92,6 +92,58 @@ export const updateSwapSubject = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// Owner cancels a pending_deposit swap before sending funds.
+export const cancelSwap = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: updated, error } = await supabase
+      .from("swap_requests")
+      .update({ status: "expired" })
+      .eq("id", data.id)
+      .eq("user_id", userId)
+      .eq("status", "pending_deposit")
+      .select()
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!updated) throw new Error("Swap can no longer be cancelled");
+    return { swap: updated };
+  });
+
+// Public: last N completed swaps, anonymised, for the homepage ticker.
+export const listRecentCompleted = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const { data } = await supabaseAdmin
+      .from("swap_requests")
+      .select("from_currency,to_currency,from_amount,to_amount,created_at")
+      .eq("status", "completed")
+      .order("created_at", { ascending: false })
+      .limit(8);
+    return { recent: data ?? [] };
+  });
+
+// User updates their own profile preferences (display_name + jsonb prefs blob).
+export const updateProfile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({
+      display_name: z.string().min(1).max(80).optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const patch: Record<string, unknown> = {};
+    if (data.display_name !== undefined) patch.display_name = data.display_name;
+    if (Object.keys(patch).length === 0) return { ok: true };
+    const { error } = await supabase
+      .from("profiles")
+      .update(patch as never)
+      .eq("id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const listMySwaps = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
